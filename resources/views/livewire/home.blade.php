@@ -7,49 +7,76 @@
             ['from-green-100 via-white to-yellow-100', 'bg-brand-green', 'للمواليد', 'كل ما يحتاجه مولودك', 'ملابس وبطاطين ومستلزمات بخامات قطنية عضوية رقيقة على البشرة.', route('shop', ['category' => 'baby']), 'تسوّق المواليد', 'https://loremflickr.com/800/800/baby,smile?lock=13'],
         ];
     @endphp
-    <section class="relative" wire:ignore>
-        <div class="swiper" dir="rtl" x-data x-init="new Swiper($el, {
-                loop: true, speed: 700, autoplay: { delay: 5500, disableOnInteraction: false },
-                pagination: { el: $el.querySelector('.swiper-pagination'), clickable: true },
-                navigation: { nextEl: $el.querySelector('.hero-next'), prevEl: $el.querySelector('.hero-prev') },
-            })">
-            <div class="swiper-wrapper">
-                @foreach ($slides as [$grad, $accent, $tag, $title, $text, $url, $cta, $img])
-                    <div class="swiper-slide bg-gradient-to-l {{ $grad }}">
-                        <div class="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
-                            <div>
-                                <span class="inline-flex items-center gap-2 {{ $accent }} text-white font-bold px-4 py-1.5 rounded-full text-sm shadow">
-                                    <x-heroicon-s-sparkles class="w-5 h-5"/>{{ $tag }}
-                                </span>
-                                <h1 class="mt-5 text-4xl md:text-6xl font-black leading-tight">{{ $title }}</h1>
-                                <p class="mt-4 text-slate-600 text-lg max-w-lg leading-relaxed">{{ $text }}</p>
-                                <div class="mt-8 flex flex-wrap gap-3">
-                                    <a href="{{ $url }}" class="inline-flex items-center gap-3 {{ $accent }} text-white font-extrabold px-7 py-4 rounded-2xl shadow-xl hover:scale-105 transition text-lg">
-                                        <x-heroicon-o-shopping-bag class="w-7 h-7"/>{{ $cta }}
-                                    </a>
-                                    <a href="https://wa.me/{{ config('snefro.whatsapp') }}" target="_blank" class="inline-flex items-center gap-3 bg-white text-brand-ink font-extrabold px-7 py-4 rounded-2xl shadow hover:scale-105 transition text-lg">
-                                        <x-whatsapp-icon class="w-7 h-7 text-[#25D366]"/>اطلب عبر واتساب
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="relative mx-auto w-full max-w-md">
-                                <div class="absolute -inset-4 {{ $accent }} opacity-20 rounded-[3rem] rotate-6"></div>
-                                <img src="{{ $img }}" alt="" onerror="this.onerror=null;this.src='https://placehold.co/800x800/fde68a/1f2a44?text=Snefro'"
-                                     class="relative aspect-square w-full object-cover rounded-[3rem] border-8 border-white shadow-2xl -rotate-3">
-                                <x-heroicon-s-sparkles class="absolute -top-4 -end-4 w-14 h-14 text-brand-yellow animate-float"/>
-                                <x-heroicon-s-star class="absolute -bottom-4 -start-4 w-12 h-12 text-brand-orange animate-wiggle"/>
-                                <x-heroicon-s-heart class="absolute top-1/2 -start-8 w-10 h-10 text-brand-red animate-float"/>
+   @php
+    // [الصورة, الشارة, العنوان, الوصف, رابط الزر, نص الزر]
+    $slides = [
+        [asset('images/1.webp'), 'مجموعة جديدة',  'ملابس أطفال بخامات ناعمة وآمنة', 'تشكيلة عصرية تناسب لعبهم وحركتهم طوال اليوم.',        route('shop'),                           'تسوّق الآن'],
+        [asset('images/2.webp'), 'ألعاب وهدايا',   'ألعاب تنمّي الخيال والمهارات',   'اختيارات مميزة بجودة عالية وأسعار مناسبة.',            route('shop', ['category' => 'toys']),   'اكتشف الألعاب'],
+        [asset('images/3.webp'), 'للمواليد',        'كل ما يحتاجه مولودك',            'ملابس ومستلزمات قطنية رقيقة على البشرة.',               route('shop', ['category' => 'baby']),   'تسوّق المواليد'],
+    ];
+@endphp
+
+<style>
+    .hero-swiper { --swiper-pagination-color:#fff; --swiper-pagination-bullet-inactive-color:#fff; --swiper-pagination-bullet-inactive-opacity:.45; --swiper-pagination-bullet-size:9px; }
+    .hero-swiper .swiper-pagination-bullet-active { width: 28px; border-radius: 9999px; }
+    @keyframes heroIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .hero-swiper .swiper-slide-active .hero-in { animation: heroIn .8s ease-out both; }
+    .hero-swiper .swiper-slide-active .hero-in:nth-child(2) { animation-delay: .1s; }
+    .hero-swiper .swiper-slide-active .hero-in:nth-child(3) { animation-delay: .2s; }
+    .hero-swiper .swiper-slide-active .hero-in:nth-child(4) { animation-delay: .3s; }
+</style>
+
+<section class="relative w-full" wire:ignore>
+    <div class="swiper hero-swiper" dir="rtl" x-data x-init="new Swiper($el, {
+            loop: true, speed: 900, effect: 'fade', fadeEffect: { crossFade: true },
+            autoplay: { delay: 5500, disableOnInteraction: false },
+            pagination: { el: $el.querySelector('.swiper-pagination'), clickable: true },
+            navigation: { nextEl: $el.querySelector('.hero-next'), prevEl: $el.querySelector('.hero-prev') },
+        })">
+        <div class="swiper-wrapper">
+            @foreach ($slides as $i => [$img, $tag, $title, $text, $url, $cta])
+                <div class="swiper-slide relative h-[440px] sm:h-[520px] lg:h-[640px] bg-brand-ink">
+                    {{-- الصورة بعرض الصفحة كاملة --}}
+                    <img src="{{ $img }}" alt="{{ $title }}" @if($i > 0) loading="lazy" @endif
+                         onerror="this.style.display='none'"
+                         class="absolute inset-0 h-full w-full object-cover">
+                    {{-- طبقة تظليل لوضوح النص --}}
+                    <div class="absolute inset-0 bg-gradient-to-l from-black/75 via-black/40 to-black/5"></div>
+
+                    <div class="relative h-full max-w-7xl mx-auto px-6 md:px-10 flex items-center">
+                        <div class="max-w-xl text-white">
+                            <span class="hero-in flex items-center gap-3 text-sm font-semibold tracking-wide text-white/80">
+                                <span class="h-px w-10 bg-white/70"></span>{{ $tag }}
+                            </span>
+                            <h1 class="hero-in mt-4 text-3xl sm:text-4xl lg:text-6xl font-black leading-tight">{{ $title }}</h1>
+                            <p class="hero-in mt-4 text-base sm:text-lg text-white/80 leading-relaxed">{{ $text }}</p>
+                            <div class="hero-in mt-8 flex flex-wrap gap-3">
+                                <a href="{{ $url }}" class="inline-flex items-center gap-3 bg-brand-blue hover:bg-sky-600 text-white font-bold px-7 py-3.5 rounded-xl transition">
+                                    <x-heroicon-o-shopping-bag class="w-6 h-6"/>{{ $cta }}
+                                </a>
+                                <a href="https://wa.me/{{ config('snefro.whatsapp') }}" target="_blank" rel="noopener"
+                                   class="inline-flex items-center gap-3 border border-white/60 text-white hover:bg-white hover:text-brand-ink font-bold px-7 py-3.5 rounded-xl transition">
+                                    <x-whatsapp-icon class="w-6 h-6"/>اطلب عبر واتساب
+                                </a>
                             </div>
                         </div>
                     </div>
-                @endforeach
-            </div>
-            <button class="hero-prev hidden md:flex absolute top-1/2 -translate-y-1/2 end-4 z-10 h-14 w-14 rounded-2xl bg-white/90 shadow-lg items-center justify-center hover:bg-brand-blue hover:text-white transition"><x-heroicon-o-chevron-right class="w-8 h-8"/></button>
-            <button class="hero-next hidden md:flex absolute top-1/2 -translate-y-1/2 start-4 z-10 h-14 w-14 rounded-2xl bg-white/90 shadow-lg items-center justify-center hover:bg-brand-blue hover:text-white transition"><x-heroicon-o-chevron-left class="w-8 h-8"/></button>
-            <div class="swiper-pagination !bottom-3"></div>
+                </div>
+            @endforeach
         </div>
-    </section>
 
+        <button class="hero-prev hidden md:flex absolute top-1/2 -translate-y-1/2 end-6 z-10 h-12 w-12 rounded-full border border-white/40 bg-white/10 backdrop-blur text-white items-center justify-center hover:bg-white hover:text-brand-ink transition" aria-label="السابق">
+            <x-heroicon-o-chevron-right class="w-6 h-6"/>
+        </button>
+        <button class="hero-next hidden md:flex absolute top-1/2 -translate-y-1/2 start-6 z-10 h-12 w-12 rounded-full border border-white/40 bg-white/10 backdrop-blur text-white items-center justify-center hover:bg-white hover:text-brand-ink transition" aria-label="التالي">
+            <x-heroicon-o-chevron-left class="w-6 h-6"/>
+        </button>
+        <div class="swiper-pagination !bottom-5"></div>
+    </div>
+    </section>
+<section style="height: 30px;"></section>
+
+</section>
     {{-- ===== Features ===== --}}
     <section class="max-w-7xl mx-auto px-4 -mt-0 md:-mt-10 relative z-10 pt-8 md:pt-0">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
