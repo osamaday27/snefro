@@ -1,52 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Admin' }} | Snefro Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>[x-cloak]{display:none!important}</style>
+    @include('partials.head')
+    <title>{{ $title ?? 'الإدارة' }} | لوحة سنفرو</title>
     @livewireStyles
 </head>
-<body class="bg-stone-100 text-stone-900 min-h-screen" x-data="{ side: false }">
+<body class="bg-slate-100 text-brand-ink min-h-screen" x-data="{ side: false }">
 @php
     $links = [
-        ['admin.dashboard', 'Dashboard', '📊'],
-        ['admin.products', 'Products', '👕'],
-        ['admin.categories', 'Categories', '🏷️'],
-        ['admin.orders', 'Orders', '📦'],
+        ['admin.dashboard', 'لوحة التحكم', 'chart-bar'],
+        ['admin.products', 'المنتجات', 'cube'],
+        ['admin.categories', 'الأقسام', 'squares-2x2'],
+        ['admin.orders', 'الطلبات', 'clipboard-document-list'],
     ];
 @endphp
 <div class="flex min-h-screen">
-    <aside class="fixed md:static inset-y-0 left-0 z-40 w-60 bg-stone-900 text-stone-300 flex flex-col transform transition md:translate-x-0"
-           :class="side ? 'translate-x-0' : '-translate-x-full'">
-        <div class="h-16 flex items-center px-6 text-xl font-black text-white">SNEFRO<span class="text-amber-500">.</span> <span class="ml-2 text-xs font-normal text-stone-400">admin</span></div>
-        <nav class="flex-1 px-3 space-y-1 text-sm">
+    <aside class="fixed md:sticky md:top-0 md:h-screen inset-y-0 start-0 z-40 w-64 bg-white border-e border-slate-200 flex flex-col transform transition md:translate-x-0"
+           :class="side ? 'translate-x-0' : 'translate-x-full'">
+        <div class="h-20 flex items-center justify-center border-b border-slate-100">
+            <img src="{{ asset('images/logo.png') }}" alt="Snefro" class="h-14 w-auto mix-blend-multiply">
+        </div>
+        <nav class="flex-1 p-4 space-y-2 font-bold">
             @foreach ($links as [$route, $label, $icon])
-                <a href="{{ route($route) }}" wire:navigate
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-800 {{ request()->routeIs($route) ? 'bg-amber-500 text-stone-900 font-semibold hover:bg-amber-500' : '' }}">
-                    <span>{{ $icon }}</span>{{ $label }}
+                <a href="{{ route($route) }}" wire:navigate @click="side=false"
+                   class="flex items-center gap-3 px-4 py-3 rounded-2xl transition {{ request()->routeIs($route) ? 'bg-brand-blue text-white shadow-lg shadow-sky-200' : 'text-slate-600 hover:bg-brand-sky' }}">
+                    @svg('heroicon-o-'.$icon, 'w-7 h-7'){{ $label }}
                 </a>
             @endforeach
-            <a href="{{ route('home') }}" target="_blank" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-800">🌐 View store</a>
+            <a href="{{ route('home') }}" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-brand-sky">
+                <x-heroicon-o-building-storefront class="w-7 h-7"/>عرض المتجر
+            </a>
         </nav>
-        <form method="POST" action="{{ route('logout') }}" class="p-4">
+        <form method="POST" action="{{ route('logout') }}" class="p-4 border-t border-slate-100">
             @csrf
-            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-stone-800">🚪 Logout</button>
+            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-brand-red hover:bg-red-50">
+                <x-heroicon-o-lock-closed class="w-7 h-7"/>تسجيل الخروج
+            </button>
         </form>
     </aside>
+    <div x-show="side" x-cloak @click="side=false" class="fixed inset-0 bg-black/40 z-30 md:hidden"></div>
 
     <div class="flex-1 min-w-0">
-        <div class="md:hidden h-14 bg-white border-b flex items-center px-4">
-            <button @click="side = !side" class="text-2xl">☰</button>
-            <span class="ml-3 font-bold">Snefro Admin</span>
+        <div class="md:hidden h-16 bg-white border-b flex items-center px-4 gap-3">
+            <button @click="side = !side" class="h-11 w-11 rounded-2xl bg-brand-sky flex items-center justify-center"><x-heroicon-o-bars-3 class="w-7 h-7"/></button>
+            <span class="font-extrabold">لوحة سنفرو</span>
         </div>
-        <main class="p-4 md:p-8">
-            {{ $slot }}
-        </main>
+        <main class="p-4 md:p-8">{{ $slot }}</main>
     </div>
 </div>
 @livewireScripts
+@include('partials.toast')
 </body>
 </html>

@@ -11,7 +11,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
-#[Title('Shop')]
+#[Title('المتجر')]
 class Shop extends Component
 {
     use WithPagination;
@@ -22,28 +22,51 @@ class Shop extends Component
     #[Url(except: '')]
     public string $category = '';
 
-    public function updatingSearch(): void
+    #[Url(except: '')]
+    public string $gender = '';
+
+    #[Url(except: 'latest')]
+    public string $sort = 'latest';
+
+    public function updating($name): void
     {
-        $this->resetPage();
+        if (in_array($name, ['search', 'category', 'gender', 'sort'])) $this->resetPage();
     }
 
     public function setCategory(string $slug): void
     {
         $this->category = $slug;
+    }
+
+    public function setGender(string $g): void
+    {
+        $this->gender = $g;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset('search', 'category', 'gender', 'sort');
         $this->resetPage();
     }
 
     public function render()
     {
-        $products = Product::active()
-            ->when($this->search, fn ($q) => $q->where('name', 'like', '%'.$this->search.'%'))
+        $query = Product::active()->with('category')
+            ->when($this->search, fn ($q) => $q->where(fn ($w) => $w
+                ->where('name', 'like', '%'.$this->search.'%')
+                ->orWhere('short_description', 'like', '%'.$this->search.'%')))
             ->when($this->category, fn ($q) => $q->whereHas('category', fn ($c) => $c->where('slug', $this->category)))
-            ->latest()
-            ->paginate(12);
+            ->when($this->gender, fn ($q) => $q->whereIn('gender', [$this->gender, 'unisex']));
+
+        match ($this->sort) {
+            'price_asc' => $query->orderByRaw('COALESCE(sale_price, price) asc'),
+            'price_desc' => $query->orderByRaw('COALESCE(sale_price, price) desc'),
+            default => $query->latest(),
+        };
 
         return view('livewire.shop', [
-            'products' => $products,
-            'categories' => Category::orderBy('name')->get(),
+            'products' => $query->paginate(12),
+            'categories' => Category::orderBy('id')->get(),
         ]);
     }
 }

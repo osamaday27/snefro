@@ -15,7 +15,6 @@ class ProductShow extends Component
     public ?string $color = null;
     public int $qty = 1;
     public int $activeImage = 0;
-    public bool $added = false;
 
     public function mount(Product $product): void
     {
@@ -35,29 +34,40 @@ class ProductShow extends Component
 
     public function addToCart(): void
     {
-        $this->added = false;
+        $this->resetErrorBag();
 
         if ($this->product->stock < 1) {
-            $this->addError('stock', 'This product is out of stock.');
+            $this->addError('stock', 'عذراً، هذا المنتج غير متوفر حالياً.');
             return;
         }
         if (! empty($this->product->sizes) && ! $this->size) {
-            $this->addError('size', 'Please choose a size.');
+            $this->addError('size', 'من فضلك اختر المقاس.');
             return;
         }
         if (! empty($this->product->colors) && ! $this->color) {
-            $this->addError('color', 'Please choose a color.');
+            $this->addError('color', 'من فضلك اختر اللون.');
             return;
         }
 
         app(Cart::class)->add($this->product, $this->size, $this->color, $this->qty);
         $this->dispatch('cart-updated');
-        $this->resetErrorBag();
-        $this->added = true;
+        $this->dispatch('toast', message: 'تمت إضافة المنتج إلى السلة 🛍️', type: 'success');
     }
 
     public function render()
     {
-        return view('livewire.product-show')->title($this->product->name);
+        $related = Product::active()->with('category')
+            ->where('id', '!=', $this->product->id)
+            ->where('category_id', $this->product->category_id)
+            ->inRandomOrder()->take(4)->get();
+
+        if ($related->count() < 4) {
+            $related = $related->merge(
+                Product::active()->with('category')->where('id', '!=', $this->product->id)
+                    ->whereNotIn('id', $related->pluck('id'))->inRandomOrder()->take(4 - $related->count())->get()
+            );
+        }
+
+        return view('livewire.product-show', ['related' => $related])->title($this->product->name);
     }
 }

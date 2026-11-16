@@ -3,13 +3,14 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Order;
+use App\Models\Product;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('components.layouts.admin')]
-#[Title('Orders')]
+#[Title('الطلبات')]
 class Orders extends Component
 {
     use WithPagination;
@@ -29,24 +30,23 @@ class Orders extends Component
 
     public function changeStatus(int $id, string $status): void
     {
-        if (! in_array($status, Order::STATUSES, true)) return;
+        if (! array_key_exists($status, Order::STATUSES)) return;
 
         $order = Order::with('items')->findOrFail($id);
 
-        // return stock when an order gets cancelled
         if ($status === 'cancelled' && $order->status !== 'cancelled') {
             foreach ($order->items as $item) {
-                $item->product_id && \App\Models\Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                if ($item->product_id) Product::where('id', $item->product_id)->increment('stock', $item->quantity);
             }
         }
-        // take stock again if a cancelled order is re-opened
         if ($order->status === 'cancelled' && $status !== 'cancelled') {
             foreach ($order->items as $item) {
-                $item->product_id && \App\Models\Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
+                if ($item->product_id) Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
             }
         }
 
         $order->update(['status' => $status]);
+        $this->dispatch('toast', message: 'تم تحديث حالة الطلب', type: 'success');
     }
 
     public function render()

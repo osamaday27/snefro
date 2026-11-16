@@ -7,31 +7,48 @@ use App\Models\Product;
 use App\Services\Cart;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Title('Checkout')]
+#[Title('إتمام الطلب')]
 class Checkout extends Component
 {
+    public const GOVERNORATES = [
+        'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'الشرقية', 'القليوبية', 'الغربية', 'المنوفية',
+        'البحيرة', 'كفر الشيخ', 'دمياط', 'بورسعيد', 'الإسماعيلية', 'السويس', 'شمال سيناء', 'جنوب سيناء',
+        'الفيوم', 'بني سويف', 'المنيا', 'أسيوط', 'سوهاج', 'قنا', 'الأقصر', 'أسوان',
+        'البحر الأحمر', 'الوادي الجديد', 'مطروح',
+    ];
+
     public string $customer_name = '';
     public string $phone = '';
     public string $email = '';
-    public string $address = '';
     public string $city = '';
+    public string $address = '';
     public string $notes = '';
 
     protected function rules(): array
     {
         return [
             'customer_name' => 'required|string|min:3|max:100',
-            'phone' => ['required', 'regex:/^[0-9+\s-]{8,15}$/'],
+            'phone' => ['required', 'regex:/^(\+?20|0)?1[0125][0-9]{8}$/'],
             'email' => 'nullable|email|max:150',
-            'address' => 'required|string|min:5|max:255',
-            'city' => 'required|string|max:100',
+            'city' => ['required', Rule::in(self::GOVERNORATES)],
+            'address' => 'required|string|min:6|max:255',
             'notes' => 'nullable|string|max:500',
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'phone.regex' => 'من فضلك أدخل رقم موبايل مصري صحيح (مثال: 01090718857).',
+            'city.in' => 'من فضلك اختر المحافظة.',
+            'city.required' => 'من فضلك اختر المحافظة.',
         ];
     }
 
@@ -53,12 +70,11 @@ class Checkout extends Component
         }
 
         $order = DB::transaction(function () use ($data, $cart, $items) {
-            // check stock first
             foreach ($items as $i) {
                 $p = Product::lockForUpdate()->find($i->product->id);
                 if (! $p || $p->stock < $i->qty) {
                     throw ValidationException::withMessages([
-                        'cart' => "Sorry, '{$i->product->name}' doesn't have enough stock.",
+                        'cart' => "عذراً، الكمية المطلوبة من «{$i->product->name}» غير متوفرة.",
                     ]);
                 }
             }
@@ -88,7 +104,6 @@ class Checkout extends Component
         });
 
         $cart->clear();
-        $this->dispatch('cart-updated');
 
         return redirect()->route('order.success', $order->order_number);
     }
@@ -102,6 +117,7 @@ class Checkout extends Component
             'subtotal' => $cart->subtotal(),
             'shipping' => $cart->shipping(),
             'total' => $cart->total(),
+            'governorates' => self::GOVERNORATES,
         ]);
     }
 }

@@ -1,26 +1,32 @@
-# Snefro – Laravel + Livewire store (MVP)
+# سنفرو للأطفال – Laravel + Livewire (عربي RTL)
 
-## 1) Create project & install Livewire
+## 1) إنشاء المشروع وتثبيت الحزم
 ```bash
 composer create-project laravel/laravel snefro
 cd snefro
-composer require livewire/livewire
+composer require livewire/livewire blade-ui-kit/blade-heroicons
 ```
+(blade-heroicons = أيقونات Heroicons الرسمية من فريق Tailwind)
 
-## 2) Copy these files into the project (overwrite when asked)
-Copy `app/`, `database/`, `resources/`, `routes/` from this package into your project root.
-(Delete `database/factories/UserFactory.php`'s usage if the default seeder complains – our DatabaseSeeder replaces it.)
+## 2) انسخ ملفات الحزمة فوق المشروع
+انسخ المجلدات: `app/ config/ database/ lang/ public/ resources/ routes/` (وافق على الاستبدال).
 
-## 3) Database (.env)
-Set DB_* in `.env` (MySQL) or use the default SQLite, then:
+## 3) إعدادات .env
+```
+APP_NAME="Snefro"
+APP_LOCALE=ar
+APP_FALLBACK_LOCALE=ar
+```
+وفي `config/app.php` غيّر: `'timezone' => 'Africa/Cairo',`
+
+## 4) قاعدة البيانات والتشغيل
 ```bash
-php artisan migrate
-php artisan db:seed
+php artisan migrate:fresh --seed
 php artisan storage:link
 php artisan serve
 ```
+- المتجر: http://127.0.0.1:8000
+- الإدارة: http://127.0.0.1:8000/admin/login  →  admin@snefro.test / password
 
-## 4) Use it
-- Store:  http://127.0.0.1:8000
-- Admin:  http://127.0.0.1:8000/admin/login
-- Login:  admin@snefro.test / password   (change it!)
+## بيانات التواصل
+كلها في ملف واحد: `config/snefro.php` (الهاتف، الواتساب، الإيميل، العنوان، الشحن).

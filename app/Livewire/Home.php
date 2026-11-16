@@ -9,14 +9,15 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Title('Home')]
+#[Title('الرئيسية')]
 class Home extends Component
 {
     public function render()
     {
         return view('livewire.home', [
-            'products' => Product::active()->latest()->take(8)->get(),
-            'categories' => Category::withCount('products')->get(),
+            'categories' => Category::withCount(['products' => fn ($q) => $q->active()])->get(),
+            'featured' => Product::active()->with('category')->where('is_featured', true)->latest()->take(4)->get(),
+            'latest' => Product::active()->with('category')->latest()->take(8)->get(),
         ]);
     }
 }

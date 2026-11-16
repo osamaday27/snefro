@@ -7,8 +7,6 @@ use Illuminate\Support\Collection;
 
 class Cart
 {
-    public const SHIPPING = 50;
-
     protected function raw(): array
     {
         return session('cart', []);
@@ -81,7 +79,9 @@ class Cart
 
     public function shipping(): float
     {
-        return $this->subtotal() > 0 ? self::SHIPPING : 0;
+        $sub = $this->subtotal();
+        if ($sub <= 0) return 0;
+        return $sub >= config('snefro.free_shipping_over') ? 0 : (float) config('snefro.shipping_cost');
     }
 
     public function total(): float

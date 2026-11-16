@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Login' }} | Snefro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @include('partials.head')
+    <title>{{ $title ?? 'دخول' }} | {{ config('snefro.name') }}</title>
     @livewireStyles
 </head>
-<body class="bg-stone-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-brand-sky via-white to-brand-cream min-h-screen flex items-center justify-center p-4">
     {{ $slot }}
     @livewireScripts
+    @include('partials.toast')
 </body>
 </html>

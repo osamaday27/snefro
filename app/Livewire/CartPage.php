@@ -8,7 +8,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Title('Cart')]
+#[Title('سلة المشتريات')]
 class CartPage extends Component
 {
     public function increment(string $key, int $current): void
@@ -27,6 +27,7 @@ class CartPage extends Component
     {
         app(Cart::class)->remove($key);
         $this->dispatch('cart-updated');
+        $this->dispatch('toast', message: 'تم حذف المنتج من السلة', type: 'info');
     }
 
     public function render()
@@ -38,6 +39,7 @@ class CartPage extends Component
             'subtotal' => $cart->subtotal(),
             'shipping' => $cart->shipping(),
             'total' => $cart->total(),
+            'freeOver' => (float) config('snefro.free_shipping_over'),
         ]);
     }
 }

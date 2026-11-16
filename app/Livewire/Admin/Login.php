@@ -8,7 +8,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.guest')]
-#[Title('Admin Login')]
+#[Title('دخول الإدارة')]
 class Login extends Component
 {
     public string $email = '';
@@ -25,7 +25,7 @@ class Login extends Component
         $this->validate();
 
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password, 'is_admin' => true], $this->remember)) {
-            $this->addError('email', 'Invalid credentials or not an admin account.');
+            $this->addError('email', 'بيانات الدخول غير صحيحة أو أن الحساب ليس حساب إدارة.');
             return;
         }
 
