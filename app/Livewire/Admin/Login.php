@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Concerns\ForcesArabic;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -11,6 +12,7 @@ use Livewire\Component;
 #[Title('دخول الإدارة')]
 class Login extends Component
 {
+    use ForcesArabic;
     public string $email = '';
     public string $password = '';
     public bool $remember = false;

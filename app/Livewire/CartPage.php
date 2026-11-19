@@ -2,15 +2,16 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HasLocale;
 use App\Services\Cart;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Title('سلة المشتريات')]
 class CartPage extends Component
 {
+    use HasLocale;
+
     public function increment(string $key, int $current): void
     {
         app(Cart::class)->setQty($key, $current + 1);
@@ -27,7 +28,7 @@ class CartPage extends Component
     {
         app(Cart::class)->remove($key);
         $this->dispatch('cart-updated');
-        $this->dispatch('toast', message: 'تم حذف المنتج من السلة', type: 'info');
+        $this->dispatch('toast', message: __('Item removed from cart'), type: 'info');
     }
 
     public function render()
@@ -40,6 +41,6 @@ class CartPage extends Component
             'shipping' => $cart->shipping(),
             'total' => $cart->total(),
             'freeOver' => (float) config('snefro.free_shipping_over'),
-        ]);
+        ])->title(__('Shopping cart'));
     }
 }

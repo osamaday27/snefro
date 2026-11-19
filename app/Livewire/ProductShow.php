@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HasLocale;
 use App\Models\Product;
 use App\Services\Cart;
 use Livewire\Attributes\Layout;
@@ -10,6 +11,8 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class ProductShow extends Component
 {
+    use HasLocale;
+
     public Product $product;
     public ?string $size = null;
     public ?string $color = null;
@@ -37,21 +40,21 @@ class ProductShow extends Component
         $this->resetErrorBag();
 
         if ($this->product->stock < 1) {
-            $this->addError('stock', 'عذراً، هذا المنتج غير متوفر حالياً.');
+            $this->addError('stock', __('Sorry, this product is out of stock.'));
             return;
         }
         if (! empty($this->product->sizes) && ! $this->size) {
-            $this->addError('size', 'من فضلك اختر المقاس.');
+            $this->addError('size', __('Please choose a size.'));
             return;
         }
         if (! empty($this->product->colors) && ! $this->color) {
-            $this->addError('color', 'من فضلك اختر اللون.');
+            $this->addError('color', __('Please choose a color.'));
             return;
         }
 
         app(Cart::class)->add($this->product, $this->size, $this->color, $this->qty);
         $this->dispatch('cart-updated');
-        $this->dispatch('toast', message: 'تمت إضافة المنتج إلى السلة 🛍️', type: 'success');
+        $this->dispatch('toast', message: __('Added to your cart'), type: 'success');
     }
 
     public function render()
@@ -68,6 +71,6 @@ class ProductShow extends Component
             );
         }
 
-        return view('livewire.product-show', ['related' => $related])->title($this->product->name);
+        return view('livewire.product-show', ['related' => $related])->title($this->product->tr('name'));
     }
 }

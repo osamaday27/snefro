@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HasLocale;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\Cart;
@@ -10,18 +11,23 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Title('إتمام الطلب')]
 class Checkout extends Component
 {
+    use HasLocale;
+
     public const GOVERNORATES = [
-        'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'الشرقية', 'القليوبية', 'الغربية', 'المنوفية',
-        'البحيرة', 'كفر الشيخ', 'دمياط', 'بورسعيد', 'الإسماعيلية', 'السويس', 'شمال سيناء', 'جنوب سيناء',
-        'الفيوم', 'بني سويف', 'المنيا', 'أسيوط', 'سوهاج', 'قنا', 'الأقصر', 'أسوان',
-        'البحر الأحمر', 'الوادي الجديد', 'مطروح',
+        'cairo' => ['القاهرة', 'Cairo'], 'giza' => ['الجيزة', 'Giza'], 'alexandria' => ['الإسكندرية', 'Alexandria'],
+        'dakahlia' => ['الدقهلية', 'Dakahlia'], 'sharqia' => ['الشرقية', 'Sharqia'], 'qalyubia' => ['القليوبية', 'Qalyubia'],
+        'gharbia' => ['الغربية', 'Gharbia'], 'monufia' => ['المنوفية', 'Monufia'], 'beheira' => ['البحيرة', 'Beheira'],
+        'kafr-el-sheikh' => ['كفر الشيخ', 'Kafr El Sheikh'], 'damietta' => ['دمياط', 'Damietta'], 'port-said' => ['بورسعيد', 'Port Said'],
+        'ismailia' => ['الإسماعيلية', 'Ismailia'], 'suez' => ['السويس', 'Suez'], 'north-sinai' => ['شمال سيناء', 'North Sinai'],
+        'south-sinai' => ['جنوب سيناء', 'South Sinai'], 'fayoum' => ['الفيوم', 'Fayoum'], 'beni-suef' => ['بني سويف', 'Beni Suef'],
+        'minya' => ['المنيا', 'Minya'], 'assiut' => ['أسيوط', 'Assiut'], 'sohag' => ['سوهاج', 'Sohag'], 'qena' => ['قنا', 'Qena'],
+        'luxor' => ['الأقصر', 'Luxor'], 'aswan' => ['أسوان', 'Aswan'], 'red-sea' => ['البحر الأحمر', 'Red Sea'],
+        'new-valley' => ['الوادي الجديد', 'New Valley'], 'matrouh' => ['مطروح', 'Matrouh'],
     ];
 
     public string $customer_name = '';
@@ -37,7 +43,7 @@ class Checkout extends Component
             'customer_name' => 'required|string|min:3|max:100',
             'phone' => ['required', 'regex:/^(\+?20|0)?1[0125][0-9]{8}$/'],
             'email' => 'nullable|email|max:150',
-            'city' => ['required', Rule::in(self::GOVERNORATES)],
+            'city' => ['required', Rule::in(array_keys(self::GOVERNORATES))],
             'address' => 'required|string|min:6|max:255',
             'notes' => 'nullable|string|max:500',
         ];
@@ -46,9 +52,9 @@ class Checkout extends Component
     protected function messages(): array
     {
         return [
-            'phone.regex' => 'من فضلك أدخل رقم موبايل مصري صحيح (مثال: 01090718857).',
-            'city.in' => 'من فضلك اختر المحافظة.',
-            'city.required' => 'من فضلك اختر المحافظة.',
+            'phone.regex' => __('Please enter a valid Egyptian mobile number (e.g. 01090718857).'),
+            'city.in' => __('Please choose a governorate.'),
+            'city.required' => __('Please choose a governorate.'),
         ];
     }
 
@@ -62,6 +68,8 @@ class Checkout extends Component
     public function placeOrder()
     {
         $data = $this->validate();
+        $data['city'] = self::GOVERNORATES[$data['city']][0]; // نخزن اسم المحافظة بالعربي للإدارة
+
         $cart = app(Cart::class);
         $items = $cart->items();
 
@@ -74,7 +82,7 @@ class Checkout extends Component
                 $p = Product::lockForUpdate()->find($i->product->id);
                 if (! $p || $p->stock < $i->qty) {
                     throw ValidationException::withMessages([
-                        'cart' => "عذراً، الكمية المطلوبة من «{$i->product->name}» غير متوفرة.",
+                        'cart' => __('Sorry, the requested quantity of :name is not available.', ['name' => $i->product->tr('name')]),
                     ]);
                 }
             }
@@ -111,13 +119,14 @@ class Checkout extends Component
     public function render()
     {
         $cart = app(Cart::class);
+        $en = app()->getLocale() === 'en';
 
         return view('livewire.checkout', [
             'items' => $cart->items(),
             'subtotal' => $cart->subtotal(),
             'shipping' => $cart->shipping(),
             'total' => $cart->total(),
-            'governorates' => self::GOVERNORATES,
-        ]);
+            'governorates' => collect(self::GOVERNORATES)->map(fn ($g) => $g[$en ? 1 : 0]),
+        ])->title(__('Checkout'));
     }
 }

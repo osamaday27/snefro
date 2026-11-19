@@ -1,57 +1,62 @@
-<div class="max-w-7xl mx-auto px-4 py-10">
-    <div class="flex items-center gap-4">
-        <span class="h-14 w-14 rounded-2xl bg-brand-blue text-white flex items-center justify-center shadow-lg"><x-heroicon-o-shopping-bag class="w-8 h-8"/></span>
-        <div><h1 class="text-3xl font-black">المتجر</h1><p class="text-slate-500 text-sm">{{ $products->total() }} منتج متاح</p></div>
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div data-reveal class="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-[.22em] text-brand-rose">{{ __('Snefro for Kids') }}</span>
+            <h1 class="text-3xl md:text-4xl font-bold mt-2">{{ __('Shop') }}</h1>
+            <span class="title-line mt-4"></span>
+        </div>
+        <p class="text-neutral-500 text-sm">{{ $products->total() }} {{ __('products available') }}</p>
     </div>
 
-    {{-- Categories with images --}}
-    <div class="mt-8 flex gap-3 overflow-x-auto no-scrollbar pb-2">
-        <button wire:click="setCategory('')" class="shrink-0 flex flex-col items-center gap-2 w-20">
-            <span class="h-16 w-16 rounded-full flex items-center justify-center {{ $category === '' ? 'bg-brand-blue text-white ring-4 ring-sky-200' : 'bg-white text-brand-ink border border-slate-200' }}"><x-heroicon-o-squares-2x2 class="w-8 h-8"/></span>
-            <span class="text-xs font-bold {{ $category === '' ? 'text-brand-blue' : '' }}">الكل</span>
+    {{-- أقسام بالصور --}}
+    <div class="mt-10 flex gap-3 overflow-x-auto no-scrollbar pb-2">
+        <button wire:click="setCategory('')" class="shrink-0 w-24 group">
+            <span class="block aspect-square flex items-center justify-center border-2 transition {{ $category === '' ? 'border-brand-ink bg-brand-ink text-white' : 'border-brand-line group-hover:border-brand-pink' }}"><x-heroicon-o-squares-2x2 class="w-9 h-9"/></span>
+            <span class="block mt-2 text-xs font-semibold text-center">{{ __('All') }}</span>
         </button>
         @foreach ($categories as $c)
-            <button wire:click="setCategory('{{ $c->slug }}')" wire:key="chip-{{ $c->id }}" class="shrink-0 flex flex-col items-center gap-2 w-20">
-                <img src="{{ $c->image_url }}" alt="{{ $c->name }}" onerror="this.onerror=null;this.src='https://placehold.co/200x200/fde68a/1f2a44?text=+'"
-                     class="h-16 w-16 rounded-full object-cover {{ $category === $c->slug ? 'ring-4 ring-brand-blue' : 'ring-2 ring-slate-200' }}">
-                <span class="text-xs font-bold text-center leading-tight {{ $category === $c->slug ? 'text-brand-blue' : '' }}">{{ $c->name }}</span>
+            <button wire:click="setCategory('{{ $c->slug }}')" wire:key="chip-{{ $c->id }}" class="shrink-0 w-24 group">
+                <span class="block aspect-square overflow-hidden border-2 transition {{ $category === $c->slug ? 'border-brand-rose' : 'border-brand-line group-hover:border-brand-pink' }}">
+                    <img src="{{ $c->image_url }}" alt="{{ $c->tr('name') }}" onerror="this.onerror=null;this.src='https://placehold.co/200x200/F6F6F6/111111?text=+'" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
+                </span>
+                <span class="block mt-2 text-xs font-semibold text-center leading-tight {{ $category === $c->slug ? 'text-brand-rose' : '' }}">{{ $c->tr('name') }}</span>
             </button>
         @endforeach
     </div>
 
-    {{-- Filters --}}
-    <div class="mt-6 bg-white rounded-3xl shadow-sm p-4 grid md:grid-cols-12 gap-3 items-center">
+    {{-- فلاتر --}}
+    <div class="mt-8 border border-brand-line p-3 grid md:grid-cols-12 gap-3 items-center">
         <div class="relative md:col-span-5">
-            <x-heroicon-o-magnifying-glass class="w-6 h-6 absolute top-1/2 -translate-y-1/2 start-4 text-slate-400"/>
-            <input type="search" wire:model.live.debounce.300ms="search" placeholder="ابحث عن منتج..."
-                   class="w-full rounded-2xl border border-slate-200 ps-12 pe-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-blue">
+            <x-heroicon-o-magnifying-glass class="w-6 h-6 absolute top-1/2 -translate-y-1/2 start-4 text-neutral-400"/>
+            <input type="search" wire:model.live.debounce.300ms="search" placeholder="{{ __('Search products...') }}"
+                   class="w-full border border-brand-line ps-12 pe-4 py-3 focus:outline-none focus:border-brand-ink">
         </div>
-        <div class="md:col-span-4 flex gap-2">
-            @foreach ([''=>'الكل', 'boys'=>'أولاد', 'girls'=>'بنات'] as $k => $label)
-                <button wire:click="setGender('{{ $k }}')" class="flex-1 py-3 rounded-2xl font-bold text-sm transition {{ $gender === $k ? 'bg-brand-ink text-white' : 'bg-slate-100 hover:bg-slate-200' }}">{{ $label }}</button>
+        <div class="md:col-span-4 grid grid-cols-3 gap-2">
+            @foreach (['' => __('All'), 'boys' => __('Boys'), 'girls' => __('Girls')] as $k => $label)
+                <button wire:click="setGender('{{ $k }}')" class="py-3 text-sm font-semibold transition {{ $gender === $k ? 'bg-brand-ink text-white' : 'bg-brand-mist hover:bg-brand-pink' }}">{{ $label }}</button>
             @endforeach
         </div>
         <div class="md:col-span-3 relative">
-            <x-heroicon-o-adjustments-horizontal class="w-6 h-6 absolute top-1/2 -translate-y-1/2 start-4 text-slate-400 pointer-events-none"/>
-            <select wire:model.live="sort" class="w-full appearance-none rounded-2xl border border-slate-200 ps-12 pe-4 py-3 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-brand-blue">
-                <option value="latest">الأحدث</option>
-                <option value="price_asc">السعر: الأقل أولاً</option>
-                <option value="price_desc">السعر: الأعلى أولاً</option>
+            <x-heroicon-o-adjustments-horizontal class="w-6 h-6 absolute top-1/2 -translate-y-1/2 start-4 text-neutral-400 pointer-events-none"/>
+            <select wire:model.live="sort" class="w-full appearance-none border border-brand-line ps-12 pe-4 py-3 bg-white font-medium focus:outline-none focus:border-brand-ink">
+                <option value="latest">{{ __('Latest') }}</option>
+                <option value="price_asc">{{ __('Price: low to high') }}</option>
+                <option value="price_desc">{{ __('Price: high to low') }}</option>
             </select>
         </div>
     </div>
 
-    <div wire:loading.class="opacity-50" class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 transition">
-        @forelse ($products as $p)
-            <x-product-card :product="$p" wire:key="shop-{{ $p->id }}" />
+    <div wire:loading.class="opacity-40" class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-x-3 md:gap-x-5 gap-y-10 transition">
+        @forelse ($products as $i => $p)
+            <x-product-card :product="$p" data-reveal style="--d: {{ ($i % 4) * 70 }}ms" wire:key="shop-{{ $p->id }}" />
         @empty
-            <div class="col-span-full text-center py-20">
-                <span class="mx-auto h-24 w-24 rounded-full bg-brand-sky text-brand-blue flex items-center justify-center"><x-heroicon-o-face-frown class="w-14 h-14"/></span>
-                <p class="mt-4 font-bold text-lg">لا توجد منتجات مطابقة لبحثك</p>
-                <button wire:click="resetFilters" class="mt-4 inline-flex items-center gap-2 bg-brand-blue text-white font-bold px-6 py-3 rounded-2xl"><x-heroicon-o-arrow-path class="w-6 h-6"/>مسح الفلاتر</button>
+            <div class="col-span-full text-center py-24">
+                <x-heroicon-o-face-frown class="w-16 h-16 mx-auto text-neutral-300"/>
+                <p class="mt-4 font-semibold text-lg">{{ __('No products match your search') }}</p>
+                <button wire:click="resetFilters" class="mt-5 inline-flex items-center gap-2 bg-brand-ink text-white font-semibold px-6 py-3 hover:bg-brand-rose transition"><x-heroicon-o-arrow-path class="w-6 h-6"/>{{ __('Reset filters') }}</button>
             </div>
         @endforelse
     </div>
 
-    <div class="mt-12">{{ $products->links('pagination.arabic') }}</div>
+    <div class="mt-14">{{ $products->links('pagination.arabic') }}</div>
 </div>

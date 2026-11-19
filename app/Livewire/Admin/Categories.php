@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Concerns\ForcesArabic;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,10 +15,11 @@ use Livewire\WithFileUploads;
 #[Title('الأقسام')]
 class Categories extends Component
 {
-    use WithFileUploads;
+    use ForcesArabic, WithFileUploads;
 
     public ?int $editingId = null;
     public string $name = '';
+    public string $name_en = '';
     public $photo = null;
     public ?string $currentImage = null;
 
@@ -25,14 +27,17 @@ class Categories extends Component
     {
         $this->validate([
             'name' => 'required|string|max:100',
+            'name_en' => 'nullable|string|max:100',
             'photo' => 'nullable|image|max:2048',
         ]);
 
-        $slug = Str::slug($this->name) ?: Str::lower(Str::random(6));
+        // الرابط (slug) من الاسم الإنجليزي إن وُجد
+        $slug = Str::slug($this->name_en ?: $this->name) ?: Str::lower(Str::random(6));
         $exists = Category::where('slug', $slug)->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId))->exists();
         if ($exists) $slug .= '-'.Str::lower(Str::random(3));
 
-        $data = ['name' => $this->name, 'slug' => $slug];
+        $data = ['name' => $this->name, 'name_en' => $this->name_en ?: null];
+        if (! $this->editingId) $data['slug'] = $slug;
 
         if ($this->photo) {
             $this->deleteFile($this->currentImage);
@@ -50,13 +55,14 @@ class Categories extends Component
         $c = Category::findOrFail($id);
         $this->editingId = $c->id;
         $this->name = $c->name;
+        $this->name_en = $c->name_en ?? '';
         $this->currentImage = $c->image;
         $this->photo = null;
     }
 
     public function cancel(): void
     {
-        $this->reset('name', 'editingId', 'photo', 'currentImage');
+        $this->reset('name', 'name_en', 'editingId', 'photo', 'currentImage');
         $this->resetValidation();
     }
 
@@ -64,7 +70,7 @@ class Categories extends Component
     {
         $c = Category::findOrFail($id);
         $this->deleteFile($c->image);
-        $c->delete(); // المنتجات تبقى بدون قسم
+        $c->delete();
         $this->dispatch('toast', message: 'تم حذف القسم', type: 'info');
     }
 

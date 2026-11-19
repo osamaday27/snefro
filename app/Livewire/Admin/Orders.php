@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Livewire\Concerns\ForcesArabic;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -13,6 +14,7 @@ use Livewire\WithPagination;
 #[Title('الطلبات')]
 class Orders extends Component
 {
+    use ForcesArabic;
     use WithPagination;
 
     public string $status = '';

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Concerns\ForcesArabic;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,7 @@ use Livewire\WithPagination;
 #[Title('المنتجات')]
 class Products extends Component
 {
-    use WithFileUploads, WithPagination;
+    use ForcesArabic, WithFileUploads, WithPagination;
 
     public string $search = '';
     public bool $showForm = false;
@@ -24,18 +25,24 @@ class Products extends Component
 
     public $category_id = '';
     public string $name = '';
+    public string $name_en = '';
     public string $short_description = '';
+    public string $short_description_en = '';
     public string $description = '';
+    public string $description_en = '';
     public $price = '';
     public $sale_price = '';
     public $stock = 0;
     public string $age_range = '';
     public string $gender = 'unisex';
     public string $material = '';
+    public string $material_en = '';
     public string $features = '';
+    public string $features_en = '';
     public string $care = '';
+    public string $care_en = '';
     public string $sizes = '';
-    public string $colors = '';
+    public array $colors = [];
     public bool $is_active = true;
     public bool $is_featured = false;
 
@@ -47,14 +54,18 @@ class Products extends Component
         return [
             'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:150',
+            'name_en' => 'nullable|string|max:150',
             'short_description' => 'nullable|string|max:255',
+            'short_description_en' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0|lt:price',
             'stock' => 'required|integer|min:0',
             'age_range' => 'nullable|string|max:60',
             'gender' => 'required|in:boys,girls,unisex',
             'material' => 'nullable|string|max:120',
+            'material_en' => 'nullable|string|max:120',
             'photos.*' => 'image|max:2048',
         ];
     }
@@ -78,18 +89,24 @@ class Products extends Component
         $this->editingId = $p->id;
         $this->category_id = $p->category_id ?? '';
         $this->name = $p->name;
+        $this->name_en = $p->name_en ?? '';
         $this->short_description = $p->short_description ?? '';
+        $this->short_description_en = $p->short_description_en ?? '';
         $this->description = $p->description ?? '';
+        $this->description_en = $p->description_en ?? '';
         $this->price = $p->price;
         $this->sale_price = $p->sale_price ?? '';
         $this->stock = $p->stock;
         $this->age_range = $p->age_range ?? '';
         $this->gender = $p->gender ?? 'unisex';
         $this->material = $p->material ?? '';
+        $this->material_en = $p->material_en ?? '';
         $this->features = implode("\n", $p->features ?? []);
+        $this->features_en = implode("\n", $p->features_en ?? []);
         $this->care = $p->care ?? '';
-        $this->sizes = implode('، ', $p->sizes ?? []);
-        $this->colors = implode('، ', $p->colors ?? []);
+        $this->care_en = $p->care_en ?? '';
+        $this->sizes = implode(', ', $p->sizes ?? []);
+        $this->colors = $p->colors ?? [];
         $this->is_active = $p->is_active;
         $this->is_featured = $p->is_featured;
         $this->existing = $p->images ?? [];
@@ -130,18 +147,24 @@ class Products extends Component
         $data = [
             'category_id' => $this->category_id ?: null,
             'name' => $this->name,
+            'name_en' => $this->name_en ?: null,
             'short_description' => $this->short_description ?: null,
+            'short_description_en' => $this->short_description_en ?: null,
             'description' => $this->description ?: null,
+            'description_en' => $this->description_en ?: null,
             'price' => $this->price,
             'sale_price' => $this->sale_price !== '' ? $this->sale_price : null,
             'stock' => $this->stock,
             'age_range' => $this->age_range ?: null,
             'gender' => $this->gender,
             'material' => $this->material ?: null,
+            'material_en' => $this->material_en ?: null,
             'features' => $this->lineList($this->features),
+            'features_en' => $this->lineList($this->features_en),
             'care' => $this->care ?: null,
+            'care_en' => $this->care_en ?: null,
             'sizes' => $this->commaList($this->sizes),
-            'colors' => $this->commaList($this->colors),
+            'colors' => array_values($this->colors),
             'images' => $images,
             'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,
@@ -154,10 +177,10 @@ class Products extends Component
             }
             $product->update($data);
         } else {
-            $slug = Str::slug($this->name) ?: Str::lower(Str::random(6));
+            $slug = Str::slug($this->name_en ?: $this->name) ?: Str::lower(Str::random(6));
             if (Product::where('slug', $slug)->exists()) $slug .= '-'.Str::lower(Str::random(4));
             $product = Product::create($data + ['slug' => $slug]);
-            $product->update(['sku' => 'SNF-'.str_pad($product->id, 4, '0', STR_PAD_LEFT)]);
+            $product->update(['sku' => 'SNF-'.str_pad((string) $product->id, 4, '0', STR_PAD_LEFT)]);
         }
 
         $this->resetForm();
@@ -186,8 +209,9 @@ class Products extends Component
     public function resetForm(): void
     {
         $this->reset([
-            'showForm', 'editingId', 'category_id', 'name', 'short_description', 'description', 'price',
-            'sale_price', 'stock', 'age_range', 'material', 'features', 'care', 'sizes', 'colors', 'photos', 'existing',
+            'showForm', 'editingId', 'category_id', 'name', 'name_en', 'short_description', 'short_description_en',
+            'description', 'description_en', 'price', 'sale_price', 'stock', 'age_range', 'material', 'material_en',
+            'features', 'features_en', 'care', 'care_en', 'sizes', 'colors', 'photos', 'existing',
         ]);
         $this->gender = 'unisex';
         $this->is_active = true;
@@ -199,10 +223,10 @@ class Products extends Component
     {
         return view('livewire.admin.products', [
             'products' => Product::with('category')
-                ->when($this->search, fn ($q) => $q->where('name', 'like', '%'.$this->search.'%'))
+                ->when($this->search, fn ($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('name_en', 'like', '%'.$this->search.'%'))
                 ->latest()->paginate(10),
             'categories' => Category::orderBy('name')->get(),
-            'genders' => Product::GENDERS,
+            'palette' => Product::COLORS,
         ]);
     }
 }

@@ -1,106 +1,99 @@
+@php $locale = app()->getLocale(); $dir = $locale === 'ar' ? 'rtl' : 'ltr'; @endphp
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ $locale }}" dir="{{ $dir }}">
 <head>
     @include('partials.head')
-    <title>{{ isset($title) ? $title.' | ' : '' }}{{ config('snefro.name') }}</title>
+    <title>{{ isset($title) ? $title.' | ' : '' }}{{ config('snefro.name.'.$locale) }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11.1.14/swiper-bundle.min.css">
     <script src="https://cdn.jsdelivr.net/npm/swiper@11.1.14/swiper-bundle.min.js"></script>
     @livewireStyles
 </head>
-<body class="bg-brand-cream text-brand-ink antialiased min-h-screen flex flex-col" x-data="{ menu: false }">
+<body class="bg-white text-brand-ink min-h-screen flex flex-col" x-data="{ menu: false }">
 
-    {{-- Top bar --}}
-    <div class="bg-brand-ink text-white text-xs sm:text-sm">
-        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
-            <p class="flex items-center gap-2"><x-heroicon-o-truck class="w-5 h-5 text-brand-yellow"/>شحن مجاني للطلبات فوق {{ number_format(config('snefro.free_shipping_over')) }} {{ config('snefro.currency') }}</p>
-            <div class="hidden sm:flex items-center gap-5">
-                <a href="tel:+{{ config('snefro.whatsapp') }}" class="flex items-center gap-1.5 hover:text-brand-yellow"><x-heroicon-o-phone class="w-5 h-5"/><span dir="ltr">{{ config('snefro.phone_display') }}</span></a>
-                <a href="mailto:{{ config('snefro.email') }}" class="flex items-center gap-1.5 hover:text-brand-yellow"><x-heroicon-o-envelope class="w-5 h-5"/>{{ config('snefro.email') }}</a>
+    {{-- شريط علوي --}}
+    <div class="bg-brand-ink text-white text-xs">
+        <div class="max-w-7xl mx-auto px-4 h-10 flex items-center justify-between gap-4">
+            <p class="flex items-center gap-2"><x-heroicon-o-truck class="w-5 h-5 text-brand-pink"/>{{ __('Free shipping on orders over :amount EGP', ['amount' => number_format(config('snefro.free_shipping_over'))]) }}</p>
+            <div class="flex items-center gap-5">
+                <a href="tel:+{{ config('snefro.whatsapp') }}" class="hidden sm:flex items-center gap-1.5 hover:text-brand-pink transition"><x-heroicon-o-phone class="w-4 h-4"/><span dir="ltr">{{ config('snefro.phone_display') }}</span></a>
+                <a href="{{ route('lang', $locale === 'ar' ? 'en' : 'ar') }}" class="flex items-center gap-1.5 font-semibold hover:text-brand-pink transition">
+                    <x-heroicon-o-language class="w-5 h-5"/>{{ $locale === 'ar' ? 'English' : 'العربية' }}
+                </a>
             </div>
         </div>
     </div>
 
-    {{-- Header --}}
-    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100 shadow-sm">
+    {{-- الهيدر --}}
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-brand-line">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
-            <a href="{{ route('home') }}" wire:navigate class="shrink-0" aria-label="سنفرو للأطفال">
-                <img src="{{ asset('images/logo.png') }}" alt="Snefro For Kids" class="h-14 md:h-16 w-auto mix-blend-multiply">
+            <a href="{{ route('home') }}" wire:navigate class="shrink-0" aria-label="{{ config('snefro.name.'.$locale) }}">
+                <img src="{{ asset('images/logo.png') }}" alt="Snefro For Kids" class="h-14 w-auto mix-blend-multiply">
             </a>
 
-            <nav class="hidden md:flex items-center gap-2 font-bold">
+            <nav class="hidden md:flex items-center gap-9 text-sm font-semibold">
                 @foreach ([
-                    ['home', 'الرئيسية', 'home', route('home')],
-                    ['shop', 'المتجر', 'shopping-bag', route('shop')],
-                ] as [$r, $label, $icon, $url])
-                    <a href="{{ $url }}" wire:navigate
-                       class="flex items-center gap-2 px-4 py-2 rounded-2xl hover:bg-brand-sky {{ request()->routeIs($r) ? 'bg-brand-sky text-brand-blue' : '' }}">
-                        @svg('heroicon-o-'.$icon, 'w-6 h-6'){{ $label }}
+                    [route('home'), __('Home'), request()->routeIs('home')],
+                    [route('shop'), __('Shop'), request()->routeIs('shop')],
+                    [route('home').'#categories', __('Categories'), false],
+                    ['#contact', __('Contact us'), false],
+                ] as [$url, $label, $active])
+                    <a href="{{ $url }}" @if(! str_contains($url, '#')) wire:navigate @endif class="relative py-2 group">
+                        {{ $label }}
+                        <span class="absolute bottom-0 start-0 h-0.5 bg-brand-pink transition-all duration-300 {{ $active ? 'w-full' : 'w-0 group-hover:w-full' }}"></span>
                     </a>
                 @endforeach
-                <a href="{{ route('home') }}#categories" class="flex items-center gap-2 px-4 py-2 rounded-2xl hover:bg-brand-sky"><x-heroicon-o-squares-2x2 class="w-6 h-6"/>الأقسام</a>
-                <a href="#contact" class="flex items-center gap-2 px-4 py-2 rounded-2xl hover:bg-brand-sky"><x-heroicon-o-phone class="w-6 h-6"/>تواصل معنا</a>
             </nav>
 
             <div class="flex items-center gap-2">
-                <a href="{{ route('shop') }}" wire:navigate class="h-12 w-12 rounded-2xl bg-brand-sky text-brand-blue flex items-center justify-center hover:bg-brand-blue hover:text-white transition" aria-label="بحث">
+                <a href="{{ route('shop') }}" wire:navigate aria-label="{{ __('Search') }}" class="h-12 w-12 border border-brand-line flex items-center justify-center hover:bg-brand-ink hover:text-white hover:border-brand-ink transition">
                     <x-heroicon-o-magnifying-glass class="w-7 h-7"/>
                 </a>
                 <livewire:cart-counter />
-                <button class="md:hidden h-12 w-12 rounded-2xl bg-brand-sky text-brand-ink flex items-center justify-center" @click="menu = !menu" aria-label="القائمة">
+                <button class="md:hidden h-12 w-12 border border-brand-line flex items-center justify-center" @click="menu = !menu" aria-label="{{ __('Menu') }}">
                     <x-heroicon-o-bars-3 class="w-7 h-7" x-show="!menu"/><x-heroicon-o-x-mark class="w-7 h-7" x-show="menu" x-cloak/>
                 </button>
             </div>
         </div>
 
-        <div x-cloak x-show="menu" x-transition class="md:hidden border-t border-slate-100 bg-white px-4 py-3 grid gap-1 font-bold">
-            <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-brand-sky"><x-heroicon-o-home class="w-7 h-7 text-brand-blue"/>الرئيسية</a>
-            <a href="{{ route('shop') }}" wire:navigate class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-brand-sky"><x-heroicon-o-shopping-bag class="w-7 h-7 text-brand-orange"/>المتجر</a>
-            <a href="{{ route('home') }}#categories" @click="menu=false" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-brand-sky"><x-heroicon-o-squares-2x2 class="w-7 h-7 text-brand-green"/>الأقسام</a>
-            <a href="#contact" @click="menu=false" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-brand-sky"><x-heroicon-o-phone class="w-7 h-7 text-brand-purple"/>تواصل معنا</a>
+        <div x-cloak x-show="menu" x-transition class="md:hidden border-t border-brand-line bg-white px-4 py-2 font-semibold">
+            <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-3 py-4 border-b border-brand-line"><x-heroicon-o-home class="w-6 h-6"/>{{ __('Home') }}</a>
+            <a href="{{ route('shop') }}" wire:navigate class="flex items-center gap-3 py-4 border-b border-brand-line"><x-heroicon-o-shopping-bag class="w-6 h-6"/>{{ __('Shop') }}</a>
+            <a href="{{ route('home') }}#categories" @click="menu=false" class="flex items-center gap-3 py-4 border-b border-brand-line"><x-heroicon-o-squares-2x2 class="w-6 h-6"/>{{ __('Categories') }}</a>
+            <a href="#contact" @click="menu=false" class="flex items-center gap-3 py-4"><x-heroicon-o-phone class="w-6 h-6"/>{{ __('Contact us') }}</a>
         </div>
     </header>
 
-    <main class="flex-1">
-        {{ $slot }}
-    </main>
+    <main class="flex-1">{{ $slot }}</main>
 
-    {{-- Footer --}}
-    <footer id="contact" class="bg-brand-sky mt-20 border-t border-sky-100">
-        <div class="max-w-7xl mx-auto px-4 py-14 grid gap-10 md:grid-cols-3">
+    {{-- الفوتر --}}
+    <footer id="contact" class="bg-brand-mist mt-24 border-t border-brand-line">
+        <div class="max-w-7xl mx-auto px-4 py-16 grid gap-12 md:grid-cols-3">
             <div>
                 <img src="{{ asset('images/logo.png') }}" alt="Snefro For Kids" class="h-20 w-auto mix-blend-multiply">
-                <p class="mt-4 text-slate-600 leading-relaxed">سنفرو للأطفال.. ملابس وألعاب ومستلزمات بخامات آمنة وألوان مبهجة، بتوصلك لحد باب البيت وتدفع عند الاستلام.</p>
+                <p class="mt-5 text-neutral-600 leading-relaxed max-w-sm">{{ __('Clothing, toys and essentials with safe materials and cheerful design, delivered to your door. Pay when you receive.') }}</p>
             </div>
 
             <div>
-                <h4 class="font-extrabold text-lg mb-4">روابط سريعة</h4>
-                <ul class="space-y-3 font-semibold text-slate-600">
-                    <li><a class="flex items-center gap-2 hover:text-brand-blue" href="{{ route('home') }}" wire:navigate><x-heroicon-o-chevron-left class="w-4 h-4"/>الرئيسية</a></li>
-                    <li><a class="flex items-center gap-2 hover:text-brand-blue" href="{{ route('shop') }}" wire:navigate><x-heroicon-o-chevron-left class="w-4 h-4"/>المتجر</a></li>
-                    <li><a class="flex items-center gap-2 hover:text-brand-blue" href="{{ route('cart') }}" wire:navigate><x-heroicon-o-chevron-left class="w-4 h-4"/>سلة المشتريات</a></li>
-                    <li><a class="flex items-center gap-2 hover:text-brand-blue" href="{{ route('login') }}"><x-heroicon-o-chevron-left class="w-4 h-4"/>دخول الإدارة</a></li>
+                <h4 class="font-bold mb-5 text-sm uppercase tracking-wider">{{ __('Quick links') }}</h4>
+                <ul class="space-y-3 text-neutral-600">
+                    <li><a class="hover:text-brand-rose transition" href="{{ route('home') }}" wire:navigate>{{ __('Home') }}</a></li>
+                    <li><a class="hover:text-brand-rose transition" href="{{ route('shop') }}" wire:navigate>{{ __('Shop') }}</a></li>
+                    <li><a class="hover:text-brand-rose transition" href="{{ route('cart') }}" wire:navigate>{{ __('Shopping cart') }}</a></li>
+                    <li><a class="hover:text-brand-rose transition" href="{{ route('login') }}">{{ __('Admin login') }}</a></li>
                 </ul>
             </div>
 
             <div>
-                <h4 class="font-extrabold text-lg mb-4">تواصل معنا</h4>
-                <ul class="space-y-4 text-slate-700 font-semibold">
-                    <li><a href="tel:+{{ config('snefro.whatsapp') }}" class="flex items-center gap-3 hover:text-brand-blue">
-                        <span class="h-11 w-11 rounded-2xl bg-white shadow flex items-center justify-center text-brand-blue"><x-heroicon-o-phone class="w-6 h-6"/></span>
-                        <span dir="ltr">{{ config('snefro.phone_display') }}</span></a></li>
-                    <li><a href="https://wa.me/{{ config('snefro.whatsapp') }}" target="_blank" class="flex items-center gap-3 hover:text-green-600">
-                        <span class="h-11 w-11 rounded-2xl bg-white shadow flex items-center justify-center text-[#25D366]"><x-whatsapp-icon class="w-6 h-6"/></span>
-                        راسلنا على واتساب</a></li>
-                    <li><a href="mailto:{{ config('snefro.email') }}" class="flex items-center gap-3 hover:text-brand-blue">
-                        <span class="h-11 w-11 rounded-2xl bg-white shadow flex items-center justify-center text-brand-red"><x-heroicon-o-envelope class="w-6 h-6"/></span>
-                        {{ config('snefro.email') }}</a></li>
-                    <li class="flex items-center gap-3">
-                        <span class="h-11 w-11 rounded-2xl bg-white shadow flex items-center justify-center text-brand-orange"><x-heroicon-o-map-pin class="w-6 h-6"/></span>
-                        {{ config('snefro.address') }}</li>
+                <h4 class="font-bold mb-5 text-sm uppercase tracking-wider">{{ __('Contact us') }}</h4>
+                <ul class="space-y-4 text-neutral-700">
+                    <li><a href="tel:+{{ config('snefro.whatsapp') }}" class="flex items-center gap-3 hover:text-brand-rose transition"><x-heroicon-o-phone class="w-6 h-6"/><span dir="ltr">{{ config('snefro.phone_display') }}</span></a></li>
+                    <li><a href="https://wa.me/{{ config('snefro.whatsapp') }}" target="_blank" class="flex items-center gap-3 hover:text-brand-rose transition"><x-whatsapp-icon class="w-6 h-6"/>{{ __('Message us on WhatsApp') }}</a></li>
+                    <li><a href="mailto:{{ config('snefro.email') }}" class="flex items-center gap-3 hover:text-brand-rose transition"><x-heroicon-o-envelope class="w-6 h-6"/>{{ config('snefro.email') }}</a></li>
+                    <li class="flex items-center gap-3"><x-heroicon-o-map-pin class="w-6 h-6 shrink-0"/>{{ config('snefro.address.'.$locale) }}</li>
                 </ul>
             </div>
         </div>
-        <div class="border-t border-sky-100 text-center text-sm text-slate-500 py-5">© {{ date('Y') }} سنفرو للأطفال. جميع الحقوق محفوظة.</div>
+        <div class="border-t border-brand-line text-center text-xs text-neutral-500 py-5">© {{ date('Y') }} {{ config('snefro.name.'.$locale) }}. {{ __('All rights reserved.') }}</div>
     </footer>
 
     <x-whatsapp-float />

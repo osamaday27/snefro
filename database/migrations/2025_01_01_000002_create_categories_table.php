@@ -10,6 +10,7 @@ return new class extends Migration {
         Schema::create('categories', function (Blueprint $t) {
             $t->id();
             $t->string('name');
+            $t->string('name_en')->nullable();
             $t->string('slug')->unique();
             $t->string('image')->nullable();
             $t->timestamps();

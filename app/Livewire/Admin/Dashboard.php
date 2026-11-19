@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Livewire\Concerns\ForcesArabic;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -13,6 +14,7 @@ use Livewire\Component;
 #[Title('لوحة التحكم')]
 class Dashboard extends Component
 {
+    use ForcesArabic;
     public function render()
     {
         return view('livewire.admin.dashboard', [

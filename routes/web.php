@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\SetLocale;
 use App\Livewire\Admin;
 use App\Livewire\CartPage;
 use App\Livewire\Checkout;
@@ -11,16 +12,25 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// ---------- Storefront ----------
-Route::get('/', Home::class)->name('home');
-Route::get('/shop', Shop::class)->name('shop');
-Route::get('/product/{product:slug}', ProductShow::class)->name('product');
-Route::get('/cart', CartPage::class)->name('cart');
-Route::get('/checkout', Checkout::class)->name('checkout');
-Route::get('/order/{order:order_number}', fn (Order $order) => view('order-success', compact('order')))->name('order.success');
+// تبديل اللغة (عربي / English)
+Route::get('/lang/{locale}', function (string $locale) {
+    abort_unless(in_array($locale, ['ar', 'en'], true), 404);
+    session(['locale' => $locale]);
+    return redirect()->back(fallback: route('home'));
+})->name('lang');
 
-// ---------- Admin ----------
-Route::prefix('admin')->group(function () {
+// ---------- المتجر ----------
+Route::middleware(SetLocale::class)->group(function () {
+    Route::get('/', Home::class)->name('home');
+    Route::get('/shop', Shop::class)->name('shop');
+    Route::get('/product/{product:slug}', ProductShow::class)->name('product');
+    Route::get('/cart', CartPage::class)->name('cart');
+    Route::get('/checkout', Checkout::class)->name('checkout');
+    Route::get('/order/{order:order_number}', fn (Order $order) => view('order-success', ['order' => $order->load('items.product')]))->name('order.success');
+});
+
+// ---------- لوحة الإدارة (عربي دائماً) ----------
+Route::prefix('admin')->middleware(SetLocale::class.':ar')->group(function () {
     Route::get('login', Admin\Login::class)->middleware('guest')->name('login');
 
     Route::post('logout', function () {

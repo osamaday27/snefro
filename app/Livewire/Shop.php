@@ -2,19 +2,18 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HasLocale;
 use App\Models\Category;
 use App\Models\Product;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
-#[Title('المتجر')]
 class Shop extends Component
 {
-    use WithPagination;
+    use HasLocale, WithPagination;
 
     #[Url(except: '')]
     public string $search = '';
@@ -51,10 +50,12 @@ class Shop extends Component
 
     public function render()
     {
+        $like = '%'.$this->search.'%';
+
         $query = Product::active()->with('category')
             ->when($this->search, fn ($q) => $q->where(fn ($w) => $w
-                ->where('name', 'like', '%'.$this->search.'%')
-                ->orWhere('short_description', 'like', '%'.$this->search.'%')))
+                ->where('name', 'like', $like)->orWhere('name_en', 'like', $like)
+                ->orWhere('short_description', 'like', $like)->orWhere('short_description_en', 'like', $like)))
             ->when($this->category, fn ($q) => $q->whereHas('category', fn ($c) => $c->where('slug', $this->category)))
             ->when($this->gender, fn ($q) => $q->whereIn('gender', [$this->gender, 'unisex']));
 
@@ -67,6 +68,6 @@ class Shop extends Component
         return view('livewire.shop', [
             'products' => $query->paginate(12),
             'categories' => Category::orderBy('id')->get(),
-        ]);
+        ])->title(__('Shop'));
     }
 }

@@ -1,188 +1,186 @@
+@php
+    $gallery = $product->gallery;
+    $waText = __('Hello Snefro for Kids, I would like to ask about').":\n".$product->tr('name')."\n".__('Code').": ".$product->sku."\n".route('product', $product->slug);
+    $sizes = $product->sizes ?? []; $colors = $product->colors ?? [];
+    $features = app()->getLocale() === 'en' && ! empty($product->features_en) ? $product->features_en : ($product->features ?? []);
+@endphp
 <div class="max-w-7xl mx-auto px-4 py-10">
-    <nav class="text-sm text-slate-500 mb-6 flex items-center gap-2 flex-wrap">
-        <a href="{{ route('home') }}" wire:navigate class="hover:text-brand-blue">الرئيسية</a><x-heroicon-o-chevron-left class="w-4 h-4"/>
-        <a href="{{ route('shop') }}" wire:navigate class="hover:text-brand-blue">المتجر</a><x-heroicon-o-chevron-left class="w-4 h-4"/>
+    <nav class="text-sm text-neutral-500 mb-8 flex items-center gap-2 flex-wrap">
+        <a href="{{ route('home') }}" wire:navigate class="hover:text-brand-rose transition">{{ __('Home') }}</a><x-heroicon-o-chevron-left class="w-4 h-4 ltr:rotate-180"/>
+        <a href="{{ route('shop') }}" wire:navigate class="hover:text-brand-rose transition">{{ __('Shop') }}</a><x-heroicon-o-chevron-left class="w-4 h-4 ltr:rotate-180"/>
         @if ($product->category)
-            <a href="{{ route('shop', ['category' => $product->category->slug]) }}" wire:navigate class="hover:text-brand-blue">{{ $product->category->name }}</a><x-heroicon-o-chevron-left class="w-4 h-4"/>
+            <a href="{{ route('shop', ['category' => $product->category->slug]) }}" wire:navigate class="hover:text-brand-rose transition">{{ $product->category->tr('name') }}</a><x-heroicon-o-chevron-left class="w-4 h-4 ltr:rotate-180"/>
         @endif
-        <span class="text-brand-ink font-bold">{{ $product->name }}</span>
+        <span class="text-brand-ink font-semibold">{{ $product->tr('name') }}</span>
     </nav>
 
-    @php
-        $gallery = $product->gallery;
-        $waText = "مرحباً سنفرو للأطفال 👋\nأريد الاستفسار عن المنتج:\n{$product->name}\nكود: {$product->sku}\n".route('product', $product->slug);
-    @endphp
-
-    <div class="grid lg:grid-cols-2 gap-10">
-        {{-- Gallery --}}
-        <div>
-            <div class="relative aspect-[4/5] rounded-[2rem] overflow-hidden bg-brand-sky shadow-xl group">
-                <img src="{{ $gallery[$activeImage] ?? $gallery[0] }}" alt="{{ $product->name }}"
-                     onerror="this.onerror=null;this.src='https://placehold.co/600x750/fde68a/1f2a44?text=Snefro'"
-                     class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+    <div class="grid lg:grid-cols-2 gap-10 lg:gap-14">
+        {{-- المعرض --}}
+        <div data-reveal="left" class="grid grid-cols-[5rem_1fr] gap-3 items-start">
+            <div class="flex flex-col gap-3 order-1">
+                @foreach ($gallery as $i => $img)
+                    <button wire:click="$set('activeImage', {{ $i }})" wire:key="g-{{ $i }}" class="aspect-square overflow-hidden border-2 transition {{ $activeImage === $i ? 'border-brand-ink' : 'border-transparent opacity-60 hover:opacity-100' }}">
+                        <img src="{{ $img }}" class="w-full h-full object-cover" alt="">
+                    </button>
+                @endforeach
+            </div>
+            <div class="relative aspect-[4/5] overflow-hidden bg-brand-mist group order-2">
+                <img wire:key="main-{{ $activeImage }}" src="{{ $gallery[$activeImage] ?? $gallery[0] }}" alt="{{ $product->tr('name') }}"
+                     onerror="this.onerror=null;this.src='https://placehold.co/600x750/F6F6F6/111111?text=Snefro'"
+                     class="absolute inset-0 w-full h-full object-cover animate-fadeup transition duration-700 group-hover:scale-110">
                 @if ($product->on_sale)
-                    <span class="absolute top-4 start-4 bg-brand-red text-white font-black px-4 py-1.5 rounded-full shadow-lg">وفّر {{ $product->discount_percent }}%</span>
+                    <span class="absolute top-0 start-0 bg-brand-ink text-white text-xs font-semibold px-4 py-2">{{ __('Save :percent%', ['percent' => $product->discount_percent]) }}</span>
                 @endif
             </div>
-            @if (count($gallery) > 1)
-                <div class="mt-4 grid grid-cols-5 gap-3">
-                    @foreach ($gallery as $i => $img)
-                        <button wire:click="$set('activeImage', {{ $i }})" wire:key="g-{{ $i }}"
-                                class="aspect-square rounded-2xl overflow-hidden ring-4 transition {{ $activeImage === $i ? 'ring-brand-blue' : 'ring-transparent opacity-70 hover:opacity-100' }}">
-                            <img src="{{ $img }}" class="w-full h-full object-cover" alt="">
-                        </button>
-                    @endforeach
-                </div>
-            @endif
         </div>
 
-        {{-- Info --}}
-        <div>
-            <div class="flex flex-wrap items-center gap-2 text-sm font-bold">
-                @if ($product->category)<span class="bg-sky-100 text-brand-blue px-3 py-1 rounded-full">{{ $product->category->name }}</span>@endif
-                <span class="bg-purple-100 text-brand-purple px-3 py-1 rounded-full">{{ $product->gender_label }}</span>
-                @if ($product->age_range)<span class="bg-orange-100 text-brand-orange px-3 py-1 rounded-full flex items-center gap-1"><x-heroicon-o-cake class="w-4 h-4"/>{{ $product->age_range }}</span>@endif
+        {{-- المعلومات --}}
+        <div data-reveal="right">
+            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                @if ($product->category)<span class="bg-brand-mist px-3 py-1.5">{{ $product->category->tr('name') }}</span>@endif
+                <span class="bg-brand-pink px-3 py-1.5">{{ $product->gender_label }}</span>
+                @if ($product->age_range)<span class="border border-brand-line px-3 py-1.5 flex items-center gap-1"><x-heroicon-o-cake class="w-4 h-4"/>{{ \App\Models\Product::unit($product->age_range) }}</span>@endif
             </div>
 
-            <h1 class="text-3xl md:text-4xl font-black mt-4 leading-snug">{{ $product->name }}</h1>
-            @if ($product->short_description)<p class="text-slate-500 mt-2">{{ $product->short_description }}</p>@endif
+            <h1 class="text-3xl md:text-4xl font-bold mt-5 leading-snug">{{ $product->tr('name') }}</h1>
+            @if ($product->tr('short_description'))<p class="text-neutral-500 mt-3">{{ $product->tr('short_description') }}</p>@endif
 
-            <div class="mt-5 flex items-end gap-3">
-                <span class="text-4xl font-black text-brand-blue">{{ number_format($product->final_price) }} <small class="text-base">{{ config('snefro.currency') }}</small></span>
-                @if ($product->on_sale)<span class="text-xl text-slate-400 line-through mb-1">{{ number_format($product->price) }}</span>@endif
+            <div class="mt-6 flex items-end gap-3">
+                <span class="text-4xl font-bold">{{ number_format($product->final_price) }} <small class="text-base font-semibold">{{ __('EGP') }}</small></span>
+                @if ($product->on_sale)<span class="text-xl text-neutral-400 line-through mb-1">{{ number_format($product->price) }}</span>@endif
             </div>
 
-            <div class="mt-3 flex flex-wrap items-center gap-4 text-sm">
+            <div class="mt-4 flex flex-wrap items-center gap-5 text-sm">
                 @if ($product->stock > 0)
-                    <span class="flex items-center gap-1.5 text-green-600 font-bold"><x-heroicon-s-check-circle class="w-6 h-6"/>متوفر{{ $product->stock <= 5 ? ' — باقي '.$product->stock.' فقط!' : '' }}</span>
+                    <span class="flex items-center gap-1.5 text-green-700 font-semibold"><x-heroicon-s-check-circle class="w-6 h-6"/>{{ $product->stock <= 5 ? __('Only :count left!', ['count' => $product->stock]) : __('In stock') }}</span>
                 @else
-                    <span class="flex items-center gap-1.5 text-brand-red font-bold"><x-heroicon-s-x-circle class="w-6 h-6"/>غير متوفر حالياً</span>
+                    <span class="flex items-center gap-1.5 text-red-600 font-semibold"><x-heroicon-s-x-circle class="w-6 h-6"/>{{ __('Out of stock') }}</span>
                 @endif
-                @if ($product->sku)<span class="text-slate-400 flex items-center gap-1"><x-heroicon-o-tag class="w-5 h-5"/>كود: {{ $product->sku }}</span>@endif
+                @if ($product->sku)<span class="text-neutral-400 flex items-center gap-1"><x-heroicon-o-tag class="w-5 h-5"/>{{ __('Code') }}: {{ $product->sku }}</span>@endif
             </div>
 
-            @if (! empty($product->features))
-                <ul class="mt-6 grid sm:grid-cols-2 gap-2.5">
-                    @foreach ($product->features as $f)
-                        <li class="flex items-start gap-2 text-sm text-slate-700"><x-heroicon-s-check-circle class="w-5 h-5 text-brand-green shrink-0 mt-0.5"/>{{ $f }}</li>
+            @if (! empty($features))
+                <ul class="mt-6 grid sm:grid-cols-2 gap-x-6 gap-y-2.5 border-y border-brand-line py-5">
+                    @foreach ($features as $f)
+                        <li class="flex items-start gap-2 text-sm text-neutral-700"><x-heroicon-s-check class="w-5 h-5 text-brand-rose shrink-0 mt-0.5"/>{{ $f }}</li>
                     @endforeach
                 </ul>
             @endif
 
-            @if (! empty($product->sizes))
+            @if (! empty($sizes))
                 <div class="mt-7">
-                    <p class="font-extrabold mb-3 flex items-center gap-2"><x-heroicon-o-swatch class="w-6 h-6 text-brand-blue"/>المقاس</p>
+                    <p class="font-bold mb-3 text-sm uppercase tracking-wider">{{ __('Size') }}</p>
                     <div class="flex flex-wrap gap-2">
-                        @foreach ($product->sizes as $s)
+                        @foreach ($sizes as $s)
                             <button wire:click="$set('size', '{{ $s }}')" wire:key="s-{{ $s }}"
-                                    class="px-5 py-2.5 rounded-2xl border-2 font-bold transition {{ $size === $s ? 'bg-brand-blue border-brand-blue text-white shadow-lg' : 'border-slate-200 bg-white hover:border-brand-blue' }}">{{ $s }}</button>
+                                    class="min-w-14 px-5 py-3 border text-sm font-semibold transition {{ $size === $s ? 'bg-brand-ink border-brand-ink text-white' : 'border-brand-line hover:border-brand-ink' }}">{{ \App\Models\Product::unit($s) }}</button>
                         @endforeach
                     </div>
-                    @error('size') <p class="text-brand-red text-sm font-bold mt-2 flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-5 h-5"/>{{ $message }}</p> @enderror
+                    @error('size') <p class="text-red-600 text-sm font-semibold mt-2 flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-5 h-5"/>{{ $message }}</p> @enderror
                 </div>
             @endif
 
-            @if (! empty($product->colors))
+            @if (! empty($colors))
                 <div class="mt-7">
-                    <p class="font-extrabold mb-3 flex items-center gap-2"><x-heroicon-o-paint-brush class="w-6 h-6 text-brand-purple"/>اللون @if($color)<span class="text-slate-500 font-semibold">: {{ $color }}</span>@endif</p>
+                    <p class="font-bold mb-3 text-sm uppercase tracking-wider">{{ __('Color') }} @if($color)<span class="text-neutral-500 font-medium normal-case">· {{ \App\Models\Product::colorLabel($color) }}</span>@endif</p>
                     <div class="flex flex-wrap gap-3">
-                        @foreach ($product->colors as $c)
-                            <button wire:click="$set('color', '{{ $c }}')" wire:key="c-{{ $c }}" title="{{ $c }}"
-                                    class="h-12 w-12 rounded-full border-2 flex items-center justify-center transition {{ $color === $c ? 'ring-4 ring-brand-blue ring-offset-2 border-white' : 'border-slate-200 hover:scale-110' }}"
+                        @foreach ($colors as $c)
+                            <button wire:click="$set('color', '{{ $c }}')" wire:key="c-{{ $c }}" title="{{ \App\Models\Product::colorLabel($c) }}"
+                                    class="h-12 w-12 border-2 flex items-center justify-center transition {{ $color === $c ? 'border-brand-ink ring-2 ring-brand-pink ring-offset-2' : 'border-brand-line hover:scale-105' }}"
                                     style="background: {{ \App\Models\Product::colorHex($c) }}">
-                                @if ($color === $c)<x-heroicon-s-check class="w-6 h-6 {{ in_array($c, ['أبيض','أصفر','بيج']) ? 'text-brand-ink' : 'text-white' }}"/>@endif
+                                @if ($color === $c)<x-heroicon-s-check class="w-6 h-6 {{ in_array($c, ['white', 'yellow', 'beige', 'pink', 'sky']) ? 'text-brand-ink' : 'text-white' }}"/>@endif
                             </button>
                         @endforeach
                     </div>
-                    @error('color') <p class="text-brand-red text-sm font-bold mt-2 flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-5 h-5"/>{{ $message }}</p> @enderror
+                    @error('color') <p class="text-red-600 text-sm font-semibold mt-2 flex items-center gap-1"><x-heroicon-o-exclamation-circle class="w-5 h-5"/>{{ $message }}</p> @enderror
                 </div>
             @endif
 
             <div class="mt-7">
-                <p class="font-extrabold mb-3 flex items-center gap-2"><x-heroicon-o-calculator class="w-6 h-6 text-brand-orange"/>الكمية</p>
-                <div class="inline-flex items-center gap-2 bg-white border-2 border-slate-200 rounded-2xl p-1.5">
-                    <button wire:click="decrement" class="h-12 w-12 rounded-xl bg-slate-100 hover:bg-brand-red hover:text-white flex items-center justify-center transition"><x-heroicon-o-minus class="w-7 h-7"/></button>
-                    <span class="w-14 text-center text-xl font-black">{{ $qty }}</span>
-                    <button wire:click="increment" class="h-12 w-12 rounded-xl bg-slate-100 hover:bg-brand-green hover:text-white flex items-center justify-center transition"><x-heroicon-o-plus class="w-7 h-7"/></button>
+                <p class="font-bold mb-3 text-sm uppercase tracking-wider">{{ __('Quantity') }}</p>
+                <div class="inline-flex items-center border border-brand-line">
+                    <button wire:click="decrement" class="h-12 w-12 hover:bg-brand-ink hover:text-white flex items-center justify-center transition" aria-label="-"><x-heroicon-o-minus class="w-6 h-6"/></button>
+                    <span class="w-14 text-center text-lg font-bold">{{ $qty }}</span>
+                    <button wire:click="increment" class="h-12 w-12 hover:bg-brand-ink hover:text-white flex items-center justify-center transition" aria-label="+"><x-heroicon-o-plus class="w-6 h-6"/></button>
                 </div>
-                @error('stock') <p class="text-brand-red text-sm font-bold mt-2">{{ $message }}</p> @enderror
+                @error('stock') <p class="text-red-600 text-sm font-semibold mt-2">{{ $message }}</p> @enderror
             </div>
 
-            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+            <div class="mt-9 flex flex-col sm:flex-row gap-3">
                 <button wire:click="addToCart" wire:loading.attr="disabled" @disabled($product->stock < 1)
-                        class="flex-1 inline-flex items-center justify-center gap-3 bg-brand-blue hover:bg-sky-600 disabled:opacity-40 text-white text-lg font-extrabold py-4 rounded-2xl shadow-xl shadow-sky-200 transition">
-                    <x-heroicon-o-shopping-bag class="w-8 h-8" wire:loading.remove wire:target="addToCart"/>
-                    <x-heroicon-o-arrow-path class="w-8 h-8 animate-spin" wire:loading wire:target="addToCart"/>
-                    أضف إلى السلة
+                        class="group flex-1 inline-flex items-center justify-center gap-3 bg-brand-ink hover:bg-brand-rose disabled:opacity-40 text-white text-lg font-semibold py-4 transition">
+                    <x-heroicon-o-shopping-bag class="w-7 h-7 transition-transform group-hover:-translate-y-0.5" wire:loading.remove wire:target="addToCart"/>
+                    <x-heroicon-o-arrow-path class="w-7 h-7 animate-spin" wire:loading wire:target="addToCart"/>
+                    {{ __('Add to cart') }}
                 </button>
                 <a href="https://wa.me/{{ config('snefro.whatsapp') }}?text={{ urlencode($waText) }}" target="_blank"
-                   class="inline-flex items-center justify-center gap-3 bg-[#25D366] hover:bg-green-600 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl shadow-green-200 transition">
-                    <x-whatsapp-icon class="w-8 h-8"/>اسأل عبر واتساب
+                   class="inline-flex items-center justify-center gap-3 border border-brand-ink font-semibold py-4 px-6 hover:bg-[#25D366] hover:border-[#25D366] hover:text-white transition">
+                    <x-whatsapp-icon class="w-7 h-7"/>{{ __('Ask on WhatsApp') }}
                 </a>
             </div>
 
-            <div class="mt-6 grid grid-cols-2 gap-3 text-sm font-bold">
-                @foreach ([['banknotes','الدفع عند الاستلام','text-brand-green'],['truck','شحن لكل المحافظات','text-brand-blue'],['arrow-path','استبدال واسترجاع','text-brand-orange'],['shield-check','خامات آمنة للأطفال','text-brand-purple']] as [$i,$t,$c])
-                    <div class="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm">@svg('heroicon-o-'.$i, 'w-8 h-8 '.$c){{ $t }}</div>
+            <div class="mt-7 grid grid-cols-2 gap-px bg-brand-line border border-brand-line text-sm font-semibold">
+                @foreach ([['banknotes', __('Cash on delivery')], ['truck', __('Delivery across Egypt')], ['arrow-path', __('Easy exchange & returns')], ['shield-check', __('Safe materials for kids')]] as [$i, $t])
+                    <div class="bg-white p-4 flex items-center gap-3">@svg('heroicon-o-'.$i, 'w-8 h-8 shrink-0 text-brand-rose'){{ $t }}</div>
                 @endforeach
             </div>
         </div>
     </div>
 
-    {{-- Details tabs --}}
-    <section class="mt-16 bg-white rounded-[2rem] shadow-sm p-6 md:p-8" x-data="{ tab: 'desc' }">
-        <div class="flex gap-2 overflow-x-auto no-scrollbar border-b border-slate-100 pb-4">
-            @foreach ([['desc','الوصف','document-text'],['specs','المواصفات','clipboard-document-list'],['care','العناية والغسيل','sparkles'],['ship','الشحن والاسترجاع','truck']] as [$k,$l,$i])
-                <button @click="tab='{{ $k }}'" :class="tab==='{{ $k }}' ? 'bg-brand-blue text-white shadow-lg' : 'bg-slate-100 hover:bg-slate-200'"
-                        class="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold transition">@svg('heroicon-o-'.$i, 'w-6 h-6'){{ $l }}</button>
+    {{-- التفاصيل --}}
+    <section data-reveal class="mt-20 border border-brand-line" x-data="{ tab: 'desc' }">
+        <div class="flex overflow-x-auto no-scrollbar border-b border-brand-line">
+            @foreach ([['desc', __('Description'), 'document-text'], ['specs', __('Specifications'), 'clipboard-document-list'], ['care', __('Care & washing'), 'sparkles'], ['ship', __('Shipping & returns'), 'truck']] as [$k, $l, $i])
+                <button @click="tab='{{ $k }}'" :class="tab==='{{ $k }}' ? 'bg-brand-ink text-white' : 'hover:bg-brand-blush'"
+                        class="shrink-0 inline-flex items-center gap-2 px-6 py-4 font-semibold text-sm transition">@svg('heroicon-o-'.$i, 'w-6 h-6'){{ $l }}</button>
             @endforeach
         </div>
 
-        <div class="pt-6 leading-8 text-slate-700">
-            <div x-show="tab==='desc'"><p class="whitespace-pre-line">{{ $product->description ?: 'لا يوجد وصف لهذا المنتج.' }}</p></div>
+        <div class="p-6 md:p-10 leading-8 text-neutral-700">
+            <div x-show="tab==='desc'"><p class="whitespace-pre-line max-w-3xl">{{ $product->tr('description') ?: __('No description yet.') }}</p></div>
 
             <div x-show="tab==='specs'" x-cloak>
-                <dl class="grid sm:grid-cols-2 gap-3 max-w-3xl">
+                <dl class="grid sm:grid-cols-2 gap-px bg-brand-line border border-brand-line max-w-3xl">
                     @foreach ([
-                        'القسم' => $product->category?->name,
-                        'مناسب لـ' => $product->gender_label,
-                        'الفئة العمرية' => $product->age_range,
-                        'الخامة' => $product->material,
-                        'المقاسات المتاحة' => $product->sizes ? implode('، ', $product->sizes) : null,
-                        'الألوان المتاحة' => $product->colors ? implode('، ', $product->colors) : null,
-                        'كود المنتج' => $product->sku,
+                        __('Category') => $product->category?->tr('name'),
+                        __('Suitable for') => $product->gender_label,
+                        __('Age range') => \App\Models\Product::unit($product->age_range),
+                        __('Material') => $product->tr('material'),
+                        __('Available sizes') => $sizes ? implode(' · ', array_map([\App\Models\Product::class, 'unit'], $sizes)) : null,
+                        __('Available colors') => $colors ? implode(' · ', array_map([\App\Models\Product::class, 'colorLabel'], $colors)) : null,
+                        __('Product code') => $product->sku,
                     ] as $label => $value)
-                        @if ($value)
-                            <div class="flex justify-between gap-4 bg-brand-sky rounded-2xl px-4 py-3"><dt class="font-bold text-slate-500">{{ $label }}</dt><dd class="font-extrabold text-end">{{ $value }}</dd></div>
-                        @endif
+                        @if ($value)<div class="flex justify-between gap-4 bg-white px-5 py-3"><dt class="text-neutral-500">{{ $label }}</dt><dd class="font-semibold text-end">{{ $value }}</dd></div>@endif
                     @endforeach
                 </dl>
             </div>
 
             <div x-show="tab==='care'" x-cloak>
-                @if ($product->care)
+                @if ($product->tr('care'))
                     <ul class="space-y-2">
-                        @foreach (preg_split('/\r\n|\r|\n/', $product->care) as $line)
-                            @if (trim($line))<li class="flex items-start gap-3"><x-heroicon-s-check-circle class="w-6 h-6 text-brand-green shrink-0 mt-1"/>{{ $line }}</li>@endif
+                        @foreach (preg_split('/\r\n|\r|\n/', $product->tr('care')) as $line)
+                            @if (trim($line))<li class="flex items-start gap-3"><x-heroicon-s-check class="w-6 h-6 text-brand-rose shrink-0 mt-1"/>{{ $line }}</li>@endif
                         @endforeach
                     </ul>
-                @else <p>لا توجد تعليمات عناية لهذا المنتج.</p> @endif
+                @else <p>{{ __('No care instructions for this product.') }}</p> @endif
             </div>
 
-            <div x-show="tab==='ship'" x-cloak class="space-y-3">
-                <p class="flex items-start gap-3"><x-heroicon-o-truck class="w-7 h-7 text-brand-blue shrink-0"/>الشحن لجميع محافظات مصر خلال 2 – 4 أيام عمل بتكلفة {{ config('snefro.shipping_cost') }} {{ config('snefro.currency') }}، ومجاناً للطلبات فوق {{ number_format(config('snefro.free_shipping_over')) }} {{ config('snefro.currency') }}.</p>
-                <p class="flex items-start gap-3"><x-heroicon-o-banknotes class="w-7 h-7 text-brand-green shrink-0"/>الدفع عند الاستلام، افحص المنتج قبل الدفع.</p>
-                <p class="flex items-start gap-3"><x-heroicon-o-arrow-path class="w-7 h-7 text-brand-orange shrink-0"/>يمكن الاستبدال أو الاسترجاع خلال 14 يوماً بشرط أن يكون المنتج بحالته الأصلية.</p>
+            <div x-show="tab==='ship'" x-cloak class="space-y-4 max-w-3xl">
+                <p class="flex items-start gap-3"><x-heroicon-o-truck class="w-7 h-7 text-brand-rose shrink-0"/>{{ __('Delivery to all governorates in Egypt within 2–4 working days for :cost EGP, free for orders over :over EGP.', ['cost' => config('snefro.shipping_cost'), 'over' => number_format(config('snefro.free_shipping_over'))]) }}</p>
+                <p class="flex items-start gap-3"><x-heroicon-o-banknotes class="w-7 h-7 text-brand-rose shrink-0"/>{{ __('Cash on delivery. Check your order before paying.') }}</p>
+                <p class="flex items-start gap-3"><x-heroicon-o-arrow-path class="w-7 h-7 text-brand-rose shrink-0"/>{{ __('Exchange or return within 14 days if the product is in its original condition.') }}</p>
             </div>
         </div>
     </section>
 
-    {{-- Related --}}
     @if ($related->isNotEmpty())
-        <section class="mt-16">
-            <h2 class="text-2xl font-black mb-6 flex items-center gap-3"><x-heroicon-s-heart class="w-8 h-8 text-brand-red"/>منتجات قد تعجبك</h2>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                @foreach ($related as $p) <x-product-card :product="$p" wire:key="rel-{{ $p->id }}" /> @endforeach
+        <section class="mt-20">
+            <div data-reveal class="mb-10">
+                <h2 class="text-2xl md:text-3xl font-bold">{{ __('You may also like') }}</h2>
+                <span class="title-line mt-4"></span>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-3 md:gap-x-5 gap-y-10">
+                @foreach ($related as $i => $p) <x-product-card :product="$p" data-reveal style="--d: {{ $i * 90 }}ms" wire:key="rel-{{ $p->id }}" /> @endforeach
             </div>
         </section>
     @endif
