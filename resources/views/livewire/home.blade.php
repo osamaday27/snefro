@@ -1,11 +1,19 @@
 @php
     $dir = app()->getLocale() === 'ar' ? 'rtl' : 'ltr';
-    // [الصورة, الشارة, العنوان, الوصف, الرابط, نص الزر]
-    $slides = [
-        [asset('images/1.jpg'), __('New collection'), __('Soft, safe clothing for every day'), __('Modern pieces in gentle fabrics, made for play and made to last.'), route('shop'), __('Shop now')],
-        [asset('images/2.jpg'), __('Toys & gifts'), __('Toys that spark imagination'), __('Thoughtful picks that grow skills and bring hours of fun.'), route('shop', ['category' => 'toys']), __('Discover toys')],
-        [asset('images/3.jpg'), __('Newborn'), __('Everything for your little one'), __('Delicate cotton clothing and essentials, kind to newborn skin.'), route('shop', ['category' => 'baby']), __('Shop newborn')],
-    ];
+
+    // صور الهيرو من لوحة التحكم، وإن لم توجد تظهر الصور الافتراضية
+    if ($heroSlides->isNotEmpty()) {
+        $slides = $heroSlides->map(fn ($s) => [
+            $s->image_url, $s->tr('tag'), $s->tr('title'), $s->tr('text'),
+            $s->button_url ?: route('shop'), $s->tr('button_text') ?: __('Shop now'),
+        ])->all();
+    } else {
+        $slides = [
+            [asset('images/1.jpg'), __('New collection'), __('Soft, safe clothing for every day'), __('Modern pieces in gentle fabrics, made for play and made to last.'), route('shop'), __('Shop now')],
+            [asset('images/2.jpg'), __('Toys & gifts'), __('Toys that spark imagination'), __('Thoughtful picks that grow skills and bring hours of fun.'), route('shop', ['category' => 'toys']), __('Discover toys')],
+            [asset('images/3.jpg'), __('Newborn'), __('Everything for your little one'), __('Delicate cotton clothing and essentials, kind to newborn skin.'), route('shop', ['category' => 'baby']), __('Shop newborn')],
+        ];
+    }
     $marquee = [__('Free shipping over :amount EGP', ['amount' => number_format(config('snefro.free_shipping_over'))]), __('Cash on delivery'), __('Safe materials for kids'), __('Easy exchange & returns'), __('Delivery across Egypt')];
 @endphp
 
@@ -15,7 +23,7 @@
         <div class="swiper hero-swiper" dir="{{ $dir }}" x-data
              @mousemove="const r = $el.getBoundingClientRect(); $el.style.setProperty('--mx', ((event.clientX - r.left) / r.width - .5) * 2); $el.style.setProperty('--my', ((event.clientY - r.top) / r.height - .5) * 2)"
              x-init="new Swiper($el, {
-                loop: true, speed: 1200, effect: 'fade', fadeEffect: { crossFade: true },
+                loop: {{ count($slides) > 1 ? 'true' : 'false' }}, speed: 1200, effect: 'fade', fadeEffect: { crossFade: true },
                 autoplay: { delay: 6500, disableOnInteraction: false },
                 pagination: { el: $el.querySelector('.swiper-pagination'), clickable: true },
                 navigation: { nextEl: $el.querySelector('.hero-next'), prevEl: $el.querySelector('.hero-prev') },
@@ -32,11 +40,13 @@
                         <div class="absolute inset-0 flex items-center">
                             <div class="max-w-7xl mx-auto w-full px-4 md:px-8">
                                 <div class="hero-panel bg-white p-7 md:p-12 w-full max-w-[30rem] shadow-2xl">
+                                    @if ($tag)
                                     <span class="hero-in flex items-center gap-3 text-xs font-semibold uppercase tracking-[.22em] text-brand-rose" style="--i:0">
                                         <span class="h-0.5 w-10 bg-brand-pink"></span>{{ $tag }}
                                     </span>
+                                    @endif
                                     <h1 class="hero-in mt-5 text-3xl md:text-5xl font-bold leading-[1.15]" style="--i:1">{{ $title }}</h1>
-                                    <p class="hero-in mt-5 text-neutral-600 leading-relaxed" style="--i:2">{{ $text }}</p>
+                                    @if ($text)<p class="hero-in mt-5 text-neutral-600 leading-relaxed" style="--i:2">{{ $text }}</p>@endif
                                     <div class="hero-in mt-8 flex flex-wrap gap-3" style="--i:3">
                                         <a href="{{ $url }}" class="group inline-flex items-center gap-3 bg-brand-ink text-white font-semibold px-7 py-4 hover:bg-brand-rose transition">
                                             {{ $cta }}<x-heroicon-o-arrow-long-right class="w-6 h-6 rtl:rotate-180 transition-transform duration-300 group-hover:translate-x-1.5 rtl:group-hover:-translate-x-1.5"/>

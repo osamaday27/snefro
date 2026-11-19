@@ -11,6 +11,7 @@
         ['admin.dashboard', 'لوحة التحكم', 'chart-bar'],
         ['admin.products', 'المنتجات', 'cube'],
         ['admin.categories', 'الأقسام', 'squares-2x2'],
+        ['admin.hero', 'صور الهيرو', 'photo'],
         ['admin.orders', 'الطلبات', 'clipboard-document-list'],
     ];
 @endphp

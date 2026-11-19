@@ -44,6 +44,7 @@ Route::prefix('admin')->middleware(SetLocale::class.':ar')->group(function () {
         Route::get('/', Admin\Dashboard::class)->name('dashboard');
         Route::get('products', Admin\Products::class)->name('products');
         Route::get('categories', Admin\Categories::class)->name('categories');
+        Route::get('hero', Admin\HeroSlides::class)->name('hero');
         Route::get('orders', Admin\Orders::class)->name('orders');
     });
 });
